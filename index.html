@@ -1,10 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<!-- mobile-friendly viewport -->
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-<title>P2 Fractions Practice (© 2025 Lim Kim Sze)</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>P2 Fractions Practice (Sections 1→2→3)</title>
+
+<!-- === xAPI / SLS base (must match working reference) === -->
+<script>
+  /* Use your real URL Activity ID exactly like you said */
+  window.ACTIVITY_ID = "https://limkimsze-maker.github.io/P2_Write_the_fractions_on_phone/";
+</script>
+<script src="xapiwrapper.min.js"></script>
+<script src="index.js" defer></script>
+
+<!-- === New-Session Clear Kit (unchanged pattern from reference) === -->
+<script>
+(function (global){
+  const Kit = {
+    init(opts = {}) {
+      const ACTIVITY_ID = String(opts.activityId || global.ACTIVITY_ID || location.href);
+      const QS = new URLSearchParams(location.search);
+      const salt = (typeof opts.scopeSalt === 'function') ? (opts.scopeSalt(QS) || '') : (opts.scopeSalt || '');
+      const baseQS = QS.get('attempt') || QS.get('run') || QS.get('session') || QS.toString() || 'noqs';
+      const CURR_SCOPE = `${ACTIVITY_ID}::${salt}::${baseQS}`;
+      const SCOPE_KEY  = `sls_scope::${ACTIVITY_ID}`;
+      const resetParam = opts.resetParam || 'reset';
+      const FORCE = QS.has(resetParam) || QS.has('newSession');
+
+      let prev = null;
+      try { prev = localStorage.getItem(SCOPE_KEY); } catch (e) {}
+
+      const isNew = FORCE || prev !== CURR_SCOPE;
+      if (isNew) {
+        if (opts.clickButtonId) {
+          const btn = document.getElementById(opts.clickButtonId);
+          if (btn) {
+            try { btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })); } catch (e) {}
+          }
+        }
+        if (typeof opts.onNewSession === 'function') {
+          try { opts.onNewSession(); } catch (e) {}
+        }
+        if (opts.pushZero !== false) {
+          const payload = { score: 0 };
+          try { if (typeof global.storeState === 'function') global.storeState(payload); } catch (e) {}
+          try { if (typeof global.sendState  === 'function') global.sendState(payload);  } catch (e) {}
+        }
+        try { localStorage.setItem(SCOPE_KEY, CURR_SCOPE); } catch (e) {}
+      }
+      return { isNewAssignment: isNew, scope: CURR_SCOPE };
+    }
+  };
+  global.NewSessionClearKit = Kit;
+})(window);
+</script>
+
 <style>
   :root{
     --bg1:#fff8d6;
@@ -18,6 +68,9 @@
     --radius:16px;
     --stroke:#6b21a8;
     --fillbox:#faf5ff;
+    --bannerbg:#eff6ff;
+    --bannerborder:#bfdbfe;
+    --bannertext:#1e3a8a;
   }
 
   *{
@@ -33,23 +86,86 @@
     background:linear-gradient(135deg,var(--bg1),var(--bg2));
     font-family: system-ui,-apple-system,Segoe UI,Roboto,"Comic Sans MS",sans-serif;
     color:var(--ink);
-    display:block;
-    padding:8px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:16px;
+    gap:20px;
   }
 
+  /* === hidden xAPI teacher / debug block from reference === */
+  .container {
+    background: #ffffff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,.08);
+    width: 590px;
+    height: 470px;
+    overflow: auto;
+    display:none; /* hide from students */
+  }
+  #xapiBase { display:block; } /* internal layout stays same, but container is display:none */
+
+  .center { text-align:center; }
+  input, select, button {
+    margin: 5px;
+    padding: 6px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  button {
+    background-color: #28a745;
+    color: white;
+    cursor: pointer;
+    border: none;
+  }
+  button:hover { background-color:#218838; }
+  .criteria-group {
+    margin: 5px 0;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fafafa;
+  }
+  .criteria-group button {
+    background-color: #dc3545;
+  }
+  .criteria-group button:hover {
+    background-color: #c82333;
+  }
+  .output-container {
+    margin-top: 10px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fafafa;
+    overflow: auto;
+    max-height: 200px;
+  }
+  pre {
+    background-color: #e9ecef;
+    padding: 5px;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+    overflow-x: auto;
+  }
+
+  /* === main student app === */
   .app{
     width:100%;
-    max-width:480px;
+    max-width:420px;
     background:var(--panel);
     border-radius:var(--radius);
     box-shadow:0 24px 48px rgba(15,23,42,.18);
-    padding:16px 16px 72px;
+    padding:16px 16px 88px;
     position:relative;
-    margin:0 auto 24px auto;
   }
 
   h1{
-    font-size:1.25rem;
+    font-size:1.15rem;
     line-height:1.2;
     font-weight:700;
     margin:0 0 4px 0;
@@ -59,11 +175,41 @@
 
   .subtitle{
     text-align:center;
-    font-size:.9rem;
+    font-size:.8rem;
     font-weight:500;
     color:var(--muted);
     line-height:1.3;
+    margin-bottom:8px;
+  }
+
+  .banner{
+    background:var(--bannerbg);
+    border:1px solid var(--bannerborder);
+    color:var(--bannertext);
+    font-size:.7rem;
+    font-weight:700;
+    line-height:1.3;
+    border-radius:10px;
+    padding:8px 10px;
+    text-align:center;
     margin-bottom:12px;
+  }
+
+  #statusBadge{
+    display:none;
+    margin-bottom:8px;
+    font-size:.7rem;
+    font-weight:700;
+    line-height:1.3;
+    background:#0f172a;
+    color:#fff;
+    padding:8px 12px;
+    border-radius:12px;
+    text-align:center;
+    white-space:nowrap;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
 
   .tabs{
@@ -75,12 +221,12 @@
   }
   .tabBtn{
     flex:1;
-    min-width:90px;
+    min-width:80px;
     background:#e2e8f0;
     border:0;
     border-radius:12px;
-    padding:10px;
-    font-size:.9rem;
+    padding:8px;
+    font-size:.8rem;
     font-weight:600;
     color:var(--ink);
     cursor:pointer;
@@ -91,16 +237,21 @@
     background:var(--accent);
     color:#fff;
   }
+  .tabBtn.locked{
+    opacity:.4;
+    cursor:not-allowed;
+    filter:grayscale(1);
+  }
 
   .sec{display:none;}
   .sec.active{display:block;}
 
   .progress{
     text-align:center;
-    font-size:.9rem;
+    font-size:.8rem;
     font-weight:500;
     color:var(--muted);
-    margin-bottom:6px;
+    margin-bottom:4px;
   }
   .progress span{
     color:var(--ink);
@@ -117,28 +268,27 @@
     padding:12px;
     margin-bottom:12px;
   }
-  /* canvas: smaller base size so it fits older iPhones; CSS can upscale a bit */
   canvas{
     width:100%;
     height:auto;
-    max-width:320px;
+    max-width:360px;
     border-radius:12px;
     background-color:#ffffff;
   }
 
   .questionHeading{
     text-align:center;
-    font-size:1.05rem;
+    font-size:1rem;
     font-weight:600;
     color:var(--ink);
     line-height:1.4;
-    margin-bottom:10px;
+    margin-bottom:8px;
   }
 
   /* Sentence style row */
   .sentenceRow{
     text-align:center;
-    font-size:1.05rem;
+    font-size:1rem;
     font-weight:600;
     color:var(--ink);
     line-height:1.4;
@@ -147,20 +297,19 @@
     justify-content:center;
     align-items:flex-end;
     gap:6px;
-    margin-bottom:16px;
+    margin-bottom:12px;
   }
   .sentenceRow span.txt{
     display:inline-block;
-    font-size:1rem;
   }
 
   .smallInput{
-    width:64px;
-    max-width:28vw;
+    width:60px;
+    max-width:25vw;
     text-align:center;
-    font-size:1.4rem;
+    font-size:1.25rem;
     font-weight:600;
-    padding:8px 6px;
+    padding:4px 6px;
     border-radius:10px;
     border:2px solid var(--stroke);
     background:var(--fillbox);
@@ -173,9 +322,8 @@
     display:flex;
     justify-content:center;
     align-items:flex-end;
-    flex-wrap:wrap;
     gap:12px;
-    margin-bottom:16px;
+    margin-bottom:12px;
   }
   .fracBox{
     display:flex;
@@ -186,23 +334,23 @@
     color:var(--ink);
   }
   .fracBox input{
-    width:64px;
-    max-width:28vw;
+    width:60px;
+    max-width:25vw;
     text-align:center;
-    font-size:1.4rem;
+    font-size:1.25rem;
     font-weight:600;
-    padding:8px 6px;
+    padding:6px 8px;
     border-radius:12px;
     border:2px solid #94a3b8;
     background:#fff;
     color:var(--ink);
   }
   .fracLine{
-    width:64px;
-    max-width:28vw;
+    width:60px;
+    max-width:25vw;
     height:2px;
     background:#0f172a;
-    margin:6px 0;
+    margin:4px 0;
   }
 
   .btnRow{
@@ -210,17 +358,17 @@
     flex-wrap:wrap;
     justify-content:center;
     gap:12px;
-    margin-bottom:12px;
+    margin-bottom:8px;
   }
   button.bigBtn{
     appearance:none;
     border:0;
-    border-radius:14px;
+    border-radius:12px;
     font-size:1rem;
     font-weight:600;
     line-height:1.2;
-    padding:12px 18px;
-    min-width:140px;
+    padding:10px 16px;
+    min-width:120px;
     cursor:pointer;
     box-shadow:0 12px 24px rgba(0,0,0,.12);
     background:var(--accent);
@@ -236,154 +384,132 @@
     text-align:center;
     font-size:1rem;
     font-weight:700;
-    line-height:1.4;
-    margin-bottom:12px;
+    line-height:1.3;
   }
   .ok{color:var(--ok);}
   .no{color:var(--no);}
 
   .note{
     text-align:center;
-    font-size:.8rem;
+    font-size:.7rem;
     font-weight:500;
     line-height:1.3;
     color:var(--muted);
-    margin-bottom:16px;
-  }
-
-  /* Session / status / credit */
-  .sessionRow{
-    text-align:center;
-    margin:16px 0 8px;
-    display:flex;
-    justify-content:center;
-  }
-  .sessionBtn{
-    background:#d97706;
-    color:#fff;
-    border:0;
-    border-radius:12px;
-    font-size:.9rem;
-    font-weight:600;
-    padding:10px 14px;
-    line-height:1.2;
-    box-shadow:0 8px 16px rgba(0,0,0,.12);
-    cursor:pointer;
-  }
-  .sessionBtn:active{transform:scale(.97);}
-
-  #statusBadge{
-    font-size:.75rem;
-    font-weight:700;
-    line-height:1.3;
-    color:#1e3a8a;
-    background:#eff6ff;
-    border:1px solid #bfdbfe;
-    border-radius:10px;
-    padding:8px 10px;
-    text-align:center;
-    display:none;
-    margin:0 auto 12px auto;
-    max-width:480px;
+    margin-top:4px;
   }
 
   .credit{
-    font-size:.75rem;
+    position:absolute;
+    right:12px;
+    bottom:12px;
+    font-size:.7rem;
     font-weight:600;
     color:#475569;
     background:#fff;
-    padding:6px 10px;
+    padding:4px 8px;
     border-radius:10px;
     border:1px solid #cbd5e1;
     box-shadow:0 8px 16px rgba(0,0,0,.1);
-    text-align:center;
-    max-width:480px;
-    margin:0 auto;
   }
 
-  /* Tiny phones: stack inputs vertically if cramped */
-  @media (max-width:360px){
-    .sentenceRow{
-      flex-direction:column;
-      align-items:center;
-      gap:8px;
-    }
-    .fracInputRow{
-      flex-direction:column;
-      align-items:center;
-      gap:8px;
-    }
-    .tabBtn{
-      min-width:100px;
-      font-size:1rem;
-      padding:12px;
-    }
-    .questionHeading{
-      font-size:1.1rem;
-    }
-    .smallInput,
-    .fracBox input{
-      font-size:1.5rem;
-      width:72px;
-      max-width:40vw;
-    }
-    .fracLine{
-      width:72px;
-      max-width:40vw;
-    }
-    button.bigBtn{
-      min-width:160px;
-      font-size:1.05rem;
-      padding:14px 20px;
-      border-radius:16px;
-    }
+  /* mini SLS panel for Section 3 live score */
+  #miniSLS{
+    position:absolute;
+    left:12px;
+    bottom:12px;
+    right:80px;
+    background:var(--bannerbg);
+    border:1px solid var(--bannerborder);
+    border-radius:10px;
+    padding:8px 10px;
+    color:var(--bannertext);
+    font-size:.7rem;
+    font-weight:700;
+    line-height:1.3;
   }
 
-  /* Larger screens: float badge + credit bottom-right-ish like before */
-  @media(min-width:600px){
-    #statusBadge{
-      position:absolute;
-      left:16px;
-      bottom:16px;
-      right:16px;
-      margin:0;
-      max-width:none;
-    }
-    .credit{
-      position:absolute;
-      right:12px;
-      bottom:12px;
-      margin:0;
-    }
+  @media(min-width:480px){
+    h1{font-size:1.25rem;}
+    .sentenceRow{font-size:1.05rem;}
+    .fracBox input{font-size:1.4rem;}
   }
 </style>
 </head>
 <body>
 
-<div class="app">
+<!-- =========================
+     Hidden xAPI base panel
+     (exact same structure / IDs as the working reference)
+     ========================= -->
+<div class="container" id="xapiOuter">
+  <div id="xapiBase">
+    <p class="center"><strong>HTML5 Interactive</strong></p>
 
-  <h1>Fractions — P2 Practice</h1>
+    <div class="center">
+      <label for="score-input">Score:</label>
+      <input type="text" id="score-input" />
+      <label for="feedback-input">Feedback:</label>
+      <input type="text" id="feedback-input" placeholder="Enter feedback" />
+    </div>
+
+    <div id="criteria-container" class="center"></div>
+
+    <div class="center">
+      <button id="add-criteria-button" type="button">Add Rubric Criteria</button>
+    </div>
+
+    <div class="center">
+      <button id="save-store" type="button">Send/Save</button>
+      <button id="clear-inputs" type="button">Clear</button>
+      <!-- hidden "new session" reset button that ClearKit can click -->
+      <button id="newSessionBtn" type="button" style="display:none;">_newSession</button>
+    </div>
+
+    <div class="output-container">
+      <pre id="result"></pre>
+      <hr class="separator" />
+      <pre id="getState"></pre>
+      <hr class="separator" />
+      <pre id="questionId"></pre>
+      <pre id="userId"></pre>
+      <pre id="cookieId"></pre>
+      <a id="activityLink" href="https://limkimsze-maker.github.io/P2_Write_the_fractions_on_phone/" target="_blank" rel="noopener">ActivityID</a>
+    </div>
+  </div>
+</div>
+
+<!-- =========================
+     Student Fractions App
+     ========================= -->
+<div class="app" id="appRoot">
+
+  <h1>Write the fraction for the shaded part</h1>
   <div class="subtitle">
-    Section 1 → Section 2 → Section 3<br/>
-    Try until you get it!
+    Finish Section&nbsp;1 → then Section&nbsp;2 → then Section&nbsp;3.
   </div>
 
+  <div class="banner" role="note">
+    In Section 3, only your <strong>first try</strong> for each question counts.<br/>
+    After Section 3, go back to SLS and click “Submit”.
+  </div>
+
+  <div id="statusBadge" aria-live="polite"></div>
+
   <div class="tabs">
-    <button class="tabBtn active" data-tab="sec1">1. First Contact</button>
-    <button class="tabBtn" data-tab="sec2">2. Write the Fraction</button>
-    <button class="tabBtn" data-tab="sec3">3. Practice More</button>
+    <button class="tabBtn active" data-tab="sec1" id="tab1">1. Say it in words</button>
+    <button class="tabBtn locked" data-tab="sec2" id="tab2">2. Write as a fraction</button>
+    <button class="tabBtn locked" data-tab="sec3" id="tab3">3. Test (score sent)</button>
   </div>
 
   <!-- SECTION 1 -->
   <div class="sec active" id="sec1">
     <div class="progress">
-      Question <span id="qCount1">1</span> / <span id="qTotal1">6</span>
-      · Correct: <span id="score1">0</span>
+      Q <span id="qCount1">1</span>/<span id="qTotal1">6</span>
+      &nbsp;|&nbsp; Correct so far: <span id="score1">0</span>
     </div>
 
     <div class="canvasWrap">
-      <!-- smaller base canvas size for phones -->
-      <canvas id="canvas1" width="300" height="220"></canvas>
+      <canvas id="canvas1" width="360" height="260"></canvas>
     </div>
 
     <div class="questionHeading">
@@ -398,8 +524,8 @@
     </div>
 
     <div class="btnRow">
-      <button class="bigBtn" id="checkBtn1">Check</button>
-      <button class="bigBtn" id="nextBtn1">Next</button>
+      <button class="bigBtn" id="checkBtn1" type="button">Check</button>
+      <button class="bigBtn" id="nextBtn1" type="button">Next</button>
     </div>
 
     <div class="feedback" id="feedback1"></div>
@@ -408,12 +534,12 @@
   <!-- SECTION 2 -->
   <div class="sec" id="sec2">
     <div class="progress">
-      Question <span id="qCount2">1</span> / <span id="qTotal2">6</span>
-      · Correct: <span id="score2">0</span>
+      Q <span id="qCount2">1</span>/<span id="qTotal2">6</span>
+      &nbsp;|&nbsp; Correct so far: <span id="score2">0</span>
     </div>
 
     <div class="canvasWrap">
-      <canvas id="canvas2" width="300" height="220"></canvas>
+      <canvas id="canvas2" width="360" height="260"></canvas>
     </div>
 
     <div class="questionHeading">
@@ -429,26 +555,26 @@
     </div>
 
     <div class="btnRow">
-      <button class="bigBtn" id="checkBtn2">Check</button>
-      <button class="bigBtn" id="nextBtn2">Next</button>
+      <button class="bigBtn" id="checkBtn2" type="button">Check</button>
+      <button class="bigBtn" id="nextBtn2" type="button">Next</button>
     </div>
 
     <div class="feedback" id="feedback2"></div>
 
     <div class="note">
-      You may key in a simplified fraction.
+      You can key in a simplified fraction.
     </div>
   </div>
 
   <!-- SECTION 3 -->
   <div class="sec" id="sec3">
     <div class="progress">
-      Question <span id="qCount3">1</span> / <span id="qTotal3">8</span>
-      · Correct: <span id="score3">0</span>
+      Q <span id="qCount3">1</span>/<span id="qTotal3">8</span>
+      &nbsp;|&nbsp; Correct so far: <span id="score3">0</span>
     </div>
 
     <div class="canvasWrap">
-      <canvas id="canvas3" width="300" height="220"></canvas>
+      <canvas id="canvas3" width="360" height="260"></canvas>
     </div>
 
     <div class="questionHeading" id="promptText3">
@@ -473,685 +599,734 @@
     </div>
 
     <div class="btnRow">
-      <button class="bigBtn" id="checkBtn3">Check</button>
-      <button class="bigBtn" id="nextBtn3">Next</button>
+      <button class="bigBtn" id="checkBtn3" type="button">Check</button>
+      <button class="bigBtn" id="nextBtn3" type="button">Next</button>
     </div>
 
     <div class="feedback" id="feedback3"></div>
 
     <div class="note">
-      First-attempt results will be sent to SLS.
+      Only first tries in Section&nbsp;3 count.
+      When you finish Section&nbsp;3, go back to SLS and press “Submit”.
     </div>
   </div>
 
-  <!-- session / saving -->
-  <div class="sessionRow">
-    <button class="sessionBtn" id="newSessionBtn" type="button">New session (clear saved)</button>
+  <!-- mini live score / "what will be sent to SLS" -->
+  <div id="miniSLS" aria-live="polite">
+    First try score: <span id="miniScore">0</span>/<span id="miniOutOf">0</span><br/>
+    (Section 3 first tries only — sent to SLS)
   </div>
 
-  <div id="statusBadge" aria-live="polite"></div>
-
   <div class="credit">© 2025 Lim Kim Sze</div>
-
 </div>
-
-<!-- Hidden xAPI base (kept functional but visually hidden) -->
-<div id="xapiBase" style="display:none;">
-  <label for="score-input">Score:</label>
-  <input type="text" id="score-input" />
-  <label for="feedback-input">Feedback:</label>
-  <input type="text" id="feedback-input" placeholder="Enter feedback" />
-  <button id="save-store" type="button">Send/Save</button>
-</div>
-
-<script>
-  /* Stubs, same pattern as scoring kit */
-  window.ACTIVITY_ID = window.ACTIVITY_ID || "fractions-activity-v1";
-  function storeState(payload){ console.log("storeState stub", payload); }
-  function sendState(payload){ console.log("sendState stub", payload); }
-  function updateStore(){ console.log("updateStore stub"); }
-</script>
 
 <script>
 (function(){
 
-/* =======================
-   PERSISTENCE + SLS KIT
-   ======================= */
+  /* ---------------------
+     SAME local payload trick as reference
+     --------------------- */
+  const PAYLOAD_KEY = 'sls_fraction_payload_v1';
 
-const PAYLOAD_KEY = 'sls_fractions_payload_v1';
+  // EXACTLY like reference: pushToXAPI writes to #score-input/#feedback-input
+  // then calls updateStore() (provided by index.js from SLS)
+  function pushToXAPI(score, feedback){
+    try {
+      const sInput = document.getElementById('score-input');
+      const fInput = document.getElementById('feedback-input');
+      if (sInput) sInput.value = score;
+      if (fInput) fInput.value = feedback || '';
+      if (typeof updateStore === 'function') { updateStore(); }
+      else if (typeof storeState === 'function') { storeState({ score, feedback }); }
 
-function pushToXAPI(score, feedback){
-  try {
-    const sInput = document.getElementById('score-input');
-    const fInput = document.getElementById('feedback-input');
-    if (sInput) sInput.value = score;
-    if (fInput) fInput.value = feedback || '';
+      const badge = document.getElementById('statusBadge');
+      if (badge){
+        badge.style.display='block';
+        badge.textContent = `Saved for SLS · Score ${score}${
+          feedback ? ' · ' + (feedback.length>60 ? (feedback.slice(0,60)+'…') : feedback) : ''
+        }`;
+      }
+    } catch(e) {}
+  }
 
-    if (typeof updateStore === 'function') { updateStore(); }
-    else if (typeof storeState === 'function') { storeState({ score, feedback }); }
+  function writePayload(score, feedback){
+    try {
+      localStorage.setItem(PAYLOAD_KEY, JSON.stringify({ score, feedback, t: Date.now() }));
+    } catch(e){}
+  }
+  function readPayload(){
+    try {
+      const raw = localStorage.getItem(PAYLOAD_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch(e){ return null; }
+  }
+  function syncFromLocalToXAPI(){
+    const p = readPayload();
+    if (!p) return;
+    pushToXAPI(p.score, p.feedback);
+  }
 
-    const badge = document.getElementById('statusBadge');
-    if (badge){
-      badge.style.display='block';
-      badge.textContent = `Saved for SLS · Score ${score}` + (feedback
-        ? ' · ' + (feedback.length>60 ? (feedback.slice(0,60)+'…') : feedback)
-        : '');
+  window.addEventListener('load', syncFromLocalToXAPI);
+  window.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncFromLocalToXAPI(); });
+  window.addEventListener('focus', syncFromLocalToXAPI);
+  window.addEventListener('storage', (e)=>{ if (e.key === PAYLOAD_KEY && e.newValue) syncFromLocalToXAPI(); });
+
+  /* ---------------------
+     FRACTION LOGIC
+     --------------------- */
+
+  function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+  function choice(arr){return arr[randInt(0,arr.length-1)];}
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
     }
-  } catch(e) {
-    console.warn("pushToXAPI error", e);
+    return arr;
   }
-}
+  function pickNumerator(den){return randInt(1,den-1);}
+  function midpoint(ax,ay,bx,by){return [(ax+bx)/2,(ay+by)/2];}
 
-function writePayload(score, feedback){
-  try {
-    localStorage.setItem(
-      PAYLOAD_KEY,
-      JSON.stringify({ score, feedback, t: Date.now() })
-    );
-  } catch(e){}
-}
-
-function readPayload(){
-  try {
-    const raw = localStorage.getItem(PAYLOAD_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch(e){ return null; }
-}
-
-function syncFromLocalStorageToXAPI(){
-  const p = readPayload();
-  if (!p) return;
-  pushToXAPI(p.score, p.feedback);
-}
-
-window.addEventListener('load', () => { syncFromLocalStorageToXAPI(); });
-window.addEventListener('visibilitychange', () => { if (!document.hidden) syncFromLocalStorageToXAPI(); });
-window.addEventListener('focus', syncFromLocalStorageToXAPI);
-window.addEventListener('storage', (e)=>{ if (e.key === PAYLOAD_KEY && e.newValue) syncFromLocalStorageToXAPI(); });
-
-const newSessionBtn = document.getElementById('newSessionBtn');
-if(newSessionBtn){
-  newSessionBtn.addEventListener('click', ()=>{
-    writePayload(0,'');
-    pushToXAPI(0,'');
-    alert('Saved score/feedback cleared. Start again when ready.');
-  });
-}
-
-/* =======================
-   FRACTIONS GAME LOGIC
-   ======================= */
-
-function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
-function choice(arr){return arr[randInt(0,arr.length-1)];}
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
+  function gcd(a,b){
+    a=Math.abs(a); b=Math.abs(b);
+    while(b!==0){ const t=a%b; a=b; b=t; }
+    return a===0?1:a;
   }
-  return arr;
-}
-function pickNumerator(den){return randInt(1,den-1);}
-function midpoint(ax,ay,bx,by){return [(ax+bx)/2,(ay+by)/2];}
+  function reduceFrac(n,d){
+    if(d===0){return {n:n,d:d};}
+    const g=gcd(n,d);
+    return {n:n/g,d:d/g};
+  }
 
-function gcd(a,b){
-  a=Math.abs(a); b=Math.abs(b);
-  while(b!==0){ const t=a%b; a=b; b=t; }
-  return a===0?1:a;
-}
-function reduceFrac(n,d){
-  if(d===0){return {n:n,d:d};}
-  const g=gcd(n,d);
-  return {n:n/g,d:d/g};
-}
+  function clearCanvas(ctx){
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+  }
 
-/* draw helpers */
-function clearCanvas(ctx){
-  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
-}
+  function drawCircleFraction(ctx, num, den){
+    const cx = ctx.canvas.width/2;
+    const cy = ctx.canvas.height/2;
+    const r = 80;
+    const full = Math.PI*2;
 
-function drawCircleFraction(ctx, num, den){
-  const cx = ctx.canvas.width/2;
-  const cy = ctx.canvas.height/2;
-  const r = 70; // slightly smaller for mobile canvas
-  const full = Math.PI*2;
+    ctx.save();
+    ctx.lineWidth=2;
+    ctx.strokeStyle="#0f172a";
 
-  ctx.save();
-  ctx.lineWidth=2;
-  ctx.strokeStyle="#0f172a";
-
-  for(let i=0;i<den;i++){
-    const a0 = -Math.PI/2 + (i/den)*full;
-    const a1 = -Math.PI/2 + ((i+1)/den)*full;
+    for(let i=0;i<den;i++){
+      const a0 = -Math.PI/2 + (i/den)*full;
+      const a1 = -Math.PI/2 + ((i+1)/den)*full;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,a0,a1,false);
+      ctx.closePath();
+      ctx.fillStyle = (i < num) ? "#c7c0ff" : "#ffffff";
+      ctx.fill();
+      ctx.stroke();
+    }
     ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,a0,a1,false);
-    ctx.closePath();
-    ctx.fillStyle = (i < num) ? "#c7c0ff" : "#ffffff";
-    ctx.fill();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
     ctx.stroke();
+    ctx.restore();
   }
 
-  ctx.beginPath();
-  ctx.arc(cx,cy,r,0,Math.PI*2);
-  ctx.stroke();
-  ctx.restore();
-}
+  function drawRectangleFraction(ctx, num, den){
+    const w = 220;
+    const h = 60;
+    const x0 = (ctx.canvas.width-w)/2;
+    const y0 = ctx.canvas.height/2 - h/2 - 10;
+    const partW = w/den;
 
-function drawRectangleFraction(ctx, num, den){
-  const w = 200;
-  const h = 60;
-  const x0 = (ctx.canvas.width-w)/2;
-  const y0 = ctx.canvas.height/2 - h/2 - 5;
-  const partW = w/den;
-
-  ctx.save();
-  ctx.lineWidth=2;
-  ctx.strokeStyle="#0f172a";
-  for(let i=0;i<den;i++){
-    ctx.beginPath();
-    ctx.rect(x0 + i*partW, y0, partW, h);
-    ctx.fillStyle = (i < num) ? "#c7e1ff" : "#ffffff";
-    ctx.fill();
-    ctx.stroke();
+    ctx.save();
+    ctx.lineWidth=2;
+    ctx.strokeStyle="#0f172a";
+    for(let i=0;i<den;i++){
+      ctx.beginPath();
+      ctx.rect(x0 + i*partW, y0, partW, h);
+      ctx.fillStyle = (i < num) ? "#c7e1ff" : "#ffffff";
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
   }
-  ctx.restore();
-}
 
-function buildTriangleCells4(x0,y0,side){
-  const h = side*Math.sqrt(3)/2;
-  const A=[x0,       y0+h];
-  const B=[x0+side,  y0+h];
-  const C=[x0+side/2,y0   ];
-  const M_AB=midpoint(A[0],A[1],B[0],B[1]);
-  const M_BC=midpoint(B[0],B[1],C[0],C[1]);
-  const M_CA=midpoint(C[0],C[1],A[0],A[1]);
-  return [
-    [A,M_AB,M_CA],
-    [B,M_BC,M_AB],
-    [C,M_CA,M_BC],
-    [M_AB,M_BC,M_CA],
-  ];
-}
-function drawTriangleFraction(ctx, num, den){
-  const cx = ctx.canvas.width/2;
-  const side = 140;
-  const h = side*Math.sqrt(3)/2;
-  const x0 = cx - side/2;
-  const y0 = ctx.canvas.height/2 - h/2 - 5;
+  function buildTriangleCells4(x0,y0,side){
+    const h = side*Math.sqrt(3)/2;
+    const A=[x0,       y0+h];
+    const B=[x0+side,  y0+h];
+    const C=[x0+side/2,y0    ];
+    const M_AB=midpoint(A[0],A[1],B[0],B[1]);
+    const M_BC=midpoint(B[0],B[1],C[0],C[1]);
+    const M_CA=midpoint(C[0],C[1],A[0],A[1]);
+    return [
+      [A,M_AB,M_CA],
+      [B,M_BC,M_AB],
+      [C,M_CA,M_BC],
+      [M_AB,M_BC,M_CA],
+    ];
+  }
+  function drawTriangleFraction(ctx, num, den){
+    const cx = ctx.canvas.width/2;
+    const side = 160;
+    const h = side*Math.sqrt(3)/2;
+    const x0 = cx - side/2;
+    const y0 = ctx.canvas.height/2 - h/2 - 10;
 
-  const cells = buildTriangleCells4(x0,y0,side); // den=4 fixed
+    const cells = buildTriangleCells4(x0,y0,side); // den=4 fixed
 
-  ctx.save();
-  ctx.lineWidth=2;
-  ctx.strokeStyle="#0f172a";
-  for(let i=0;i<cells.length;i++){
-    const poly=cells[i];
+    ctx.save();
+    ctx.lineWidth=2;
+    ctx.strokeStyle="#0f172a";
+    for(let i=0;i<cells.length;i++){
+      const poly=cells[i];
+      ctx.beginPath();
+      ctx.moveTo(poly[0][0],poly[0][1]);
+      for(let k=1;k<poly.length;k++){
+        ctx.lineTo(poly[k][0],poly[k][1]);
+      }
+      ctx.closePath();
+      ctx.fillStyle = (i < num) ? "#c7c0ff" : "#ffffff";
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawPolygonWedgeFraction(ctx, sides, num, den){
+    const cx = ctx.canvas.width/2;
+    const cy = ctx.canvas.height/2 - 10;
+    const r = 70;
+
+    ctx.save();
+    ctx.lineWidth=2;
+    ctx.strokeStyle="#0f172a";
+
+    for(let i=0;i<den;i++){
+      const a0 = -Math.PI/2 + i*(2*Math.PI/den);
+      const a1 = -Math.PI/2 + (i+1)*(2*Math.PI/den);
+      const p0=[cx + r*Math.cos(a0), cy + r*Math.sin(a0)];
+      const p1=[cx + r*Math.cos(a1), cy + r*Math.sin(a1)];
+
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.lineTo(p0[0],p0[1]);
+      ctx.lineTo(p1[0],p1[1]);
+      ctx.closePath();
+      ctx.fillStyle = (i < num) ? "#c8ffd5" : "#ffffff";
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // outline polygon
+    const pts=[];
+    for(let i=0;i<den;i++){
+      const ang = -Math.PI/2 + i*(2*Math.PI/den);
+      pts.push([cx + r*Math.cos(ang), cy + r*Math.sin(ang)]);
+    }
     ctx.beginPath();
-    ctx.moveTo(poly[0][0],poly[0][1]);
-    for(let k=1;k<poly.length;k++){
-      ctx.lineTo(poly[k][0],poly[k][1]);
+    ctx.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<pts.length;i++){
+      ctx.lineTo(pts[i][0],pts[i][1]);
     }
     ctx.closePath();
-    ctx.fillStyle = (i < num) ? "#c7c0ff" : "#ffffff";
-    ctx.fill();
+    ctx.lineWidth=2;
+    ctx.strokeStyle="#0f172a";
     ctx.stroke();
+
+    ctx.restore();
   }
-  ctx.restore();
-}
 
-function drawPolygonWedgeFraction(ctx, sides, num, den){
-  const cx = ctx.canvas.width/2;
-  const cy = ctx.canvas.height/2 - 5;
-  const r = 60;
+  function drawSquareFraction(ctx, num, den){
+    const side = 140;
+    const x0 = (ctx.canvas.width - side)/2;
+    const y0 = ctx.canvas.height/2 - side/2 - 10;
+    const partW = side/den;
 
-  ctx.save();
-  ctx.lineWidth=2;
-  ctx.strokeStyle="#0f172a";
-
-  for(let i=0;i<den;i++){
-    const a0 = -Math.PI/2 + i*(2*Math.PI/den);
-    const a1 = -Math.PI/2 + (i+1)*(2*Math.PI/den);
-    const p0=[cx + r*Math.cos(a0), cy + r*Math.sin(a0)];
-    const p1=[cx + r*Math.cos(a1), cy + r*Math.sin(a1)];
-
+    ctx.save();
+    ctx.lineWidth=2;
+    ctx.strokeStyle="#0f172a";
+    for(let i=0;i<den;i++){
+      ctx.beginPath();
+      ctx.rect(x0 + i*partW, y0, partW, side);
+      ctx.fillStyle = (i < num) ? "#ffccd0" : "#ffffff";
+      ctx.fill();
+      ctx.stroke();
+    }
     ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.lineTo(p0[0],p0[1]);
-    ctx.lineTo(p1[0],p1[1]);
-    ctx.closePath();
-    ctx.fillStyle = (i < num) ? "#c8ffd5" : "#ffffff";
-    ctx.fill();
+    ctx.rect(x0, y0, side, side);
+    ctx.strokeStyle="#0f172a";
+    ctx.lineWidth=2;
     ctx.stroke();
+    ctx.restore();
   }
 
-  const pts=[];
-  for(let i=0;i<den;i++){
-    const ang = -Math.PI/2 + i*(2*Math.PI/den);
-    pts.push([cx + r*Math.cos(ang), cy + r*Math.sin(ang)]);
-  }
-  ctx.beginPath();
-  ctx.moveTo(pts[0][0],pts[0][1]);
-  for(let i=1;i<pts.length;i++){
-    ctx.lineTo(pts[i][0],pts[i][1]);
-  }
-  ctx.closePath();
-  ctx.lineWidth=2;
-  ctx.strokeStyle="#0f172a";
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-function drawSquareFraction(ctx, num, den){
-  const side = 120;
-  const x0 = (ctx.canvas.width - side)/2;
-  const y0 = ctx.canvas.height/2 - side/2 - 5;
-  const partW = side/den;
-
-  ctx.save();
-  ctx.lineWidth=2;
-  ctx.strokeStyle="#0f172a";
-  for(let i=0;i<den;i++){
-    ctx.beginPath();
-    ctx.rect(x0 + i*partW, y0, partW, side);
-    ctx.fillStyle = (i < num) ? "#ffccd0" : "#ffffff";
-    ctx.fill();
-    ctx.stroke();
-  }
-  ctx.beginPath();
-  ctx.rect(x0, y0, side, side);
-  ctx.strokeStyle="#0f172a";
-  ctx.lineWidth=2;
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawQuestion(ctx,q){
-  clearCanvas(ctx);
-  if(q.shape==="circle"){
-    drawCircleFraction(ctx,q.num,q.den);
-  }else if(q.shape==="square"){
-    drawSquareFraction(ctx,q.num,q.den);
-  }else if(q.shape==="triangle"){
-    drawTriangleFraction(ctx,q.num,q.den);
-  }else if(q.shape==="rectangle"){
-    drawRectangleFraction(ctx,q.num,q.den);
-  }else if(q.shape==="polygon"){
-    drawPolygonWedgeFraction(ctx,q.sides,q.num,q.den);
-  }else{
-    drawRectangleFraction(ctx,q.num,q.den);
-  }
-}
-
-/* generate questions */
-function buildSectionQuestions({polyCount, allowBigDen, forceModes, mixModes}) {
-  const baseShapes = ["circle","square","rectangle","triangle"];
-  const allPolySides = shuffle([5,6,7,8,9,10,11,12]);
-  const chosenSides = allPolySides.slice(0, polyCount);
-
-  const shapesPool = baseShapes.concat(Array(polyCount).fill("polygon"));
-  shuffle(shapesPool);
-
-  const qList = [];
-  let usedPolyIdx = 0;
-
-  for(const shape of shapesPool){
-    let den, num, sides;
-    if(shape==="triangle"){
-      den = 4;
-      num = pickNumerator(den);
-    }else if(shape==="polygon"){
-      sides = chosenSides[usedPolyIdx++];
-      den = sides;
-      num = pickNumerator(den);
+  function drawQuestion(ctx,q){
+    clearCanvas(ctx);
+    if(q.shape==="circle"){
+      drawCircleFraction(ctx,q.num,q.den);
+    }else if(q.shape==="square"){
+      drawSquareFraction(ctx,q.num,q.den);
+    }else if(q.shape==="triangle"){
+      drawTriangleFraction(ctx,q.num,q.den);
+    }else if(q.shape==="rectangle"){
+      drawRectangleFraction(ctx,q.num,q.den);
+    }else if(q.shape==="polygon"){
+      drawPolygonWedgeFraction(ctx,q.sides,q.num,q.den);
     }else{
-      if(!allowBigDen){
-        den = choice([2,3,4,6]);
+      drawRectangleFraction(ctx,q.num,q.den);
+    }
+  }
+
+  function buildSectionQuestions({polyCount, allowBigDen, forceModes, mixModes}) {
+    const baseShapes = ["circle","square","rectangle","triangle"];
+    const allPolySides = shuffle([5,6,7,8,9,10,11,12]);
+    const chosenSides = allPolySides.slice(0, polyCount);
+
+    const shapesPool = baseShapes.concat(Array(polyCount).fill("polygon"));
+    shuffle(shapesPool);
+
+    const qList = [];
+    let usedPolyIdx = 0;
+
+    for(const shape of shapesPool){
+      let den, num, sides;
+      if(shape==="triangle"){
+        den = 4;
+        num = pickNumerator(den);
+      }else if(shape==="polygon"){
+        sides = chosenSides[usedPolyIdx++];
+        den = sides;
+        num = pickNumerator(den);
       }else{
-        den = randInt(2,12);
+        if(!allowBigDen){
+          den = choice([2,3,4,6]);
+        }else{
+          den = randInt(2,12);
+        }
+        num = pickNumerator(den);
       }
-      num = pickNumerator(den);
+
+      qList.push({
+        shape,
+        den,
+        num,
+        sides: (shape==="polygon"?sides:undefined),
+        mode:null,
+        firstAttemptLocked:false,
+        firstAttemptCorrect:null
+      });
     }
 
-    qList.push({
-      shape,
-      den,
-      num,
-      sides: (shape==="polygon"?sides:undefined),
-      mode:null,
-      firstAttemptLocked:false,
-      firstAttemptCorrect:null
+    // assign mode
+    if(forceModes){
+      for(let i=0;i<qList.length;i++){
+        qList[i].mode = forceModes[i];
+      }
+    }else if(mixModes){
+      const mArr = [];
+      for(let i=0;i<mixModes.sentence;i++){ mArr.push("sentence"); }
+      for(let i=0;i<mixModes.fraction;i++){ mArr.push("fraction"); }
+      shuffle(mArr);
+      for(let i=0;i<qList.length;i++){
+        qList[i].mode = mArr[i];
+      }
+    }
+
+    return qList;
+  }
+
+  function buildSection1Questions(){
+    const modes = Array(6).fill("sentence"); // 6 Qs, all sentence style
+    return buildSectionQuestions({
+      polyCount:2,
+      allowBigDen:false,
+      forceModes:modes
+    });
+  }
+  function buildSection2Questions(){
+    const modes = Array(6).fill("fraction"); // 6 Qs, all fraction style
+    return buildSectionQuestions({
+      polyCount:2,
+      allowBigDen:true,
+      forceModes:modes
+    });
+  }
+  function buildSection3Questions(){
+    // 8 Qs total, 4 sentence / 4 fraction mixed
+    return buildSectionQuestions({
+      polyCount:4,
+      allowBigDen:true,
+      mixModes:{sentence:4,fraction:4}
     });
   }
 
-  if(forceModes){
-    for(let i=0;i<qList.length;i++){
-      qList[i].mode = forceModes[i];
-    }
-  }else if(mixModes){
-    const mArr = [];
-    for(let i=0;i<mixModes.sentence;i++){ mArr.push("sentence"); }
-    for(let i=0;i<mixModes.fraction;i++){ mArr.push("fraction"); }
-    shuffle(mArr);
-    for(let i=0;i<qList.length;i++){
-      qList[i].mode = mArr[i];
-    }
-  }
+  /* ---------------------
+     Section Controller
+     --------------------- */
+  function SectionController(cfg){
+    this.sectionType = cfg.sectionType;
+    this.ctx = document.getElementById(cfg.canvasId).getContext("2d");
 
-  return qList;
-}
+    // sentence style
+    this.numSentenceEl = cfg.numSentenceId ? document.getElementById(cfg.numSentenceId) : null;
+    this.denSentenceEl = cfg.denSentenceId ? document.getElementById(cfg.denSentenceId) : null;
+    this.sentenceRowEl  = cfg.sentenceRowId ? document.getElementById(cfg.sentenceRowId) : null;
 
-function buildSection1Questions(){
-  const modes = Array(6).fill("sentence");
-  return buildSectionQuestions({
-    polyCount:2,
-    allowBigDen:false,
-    forceModes:modes
-  });
-}
-function buildSection2Questions(){
-  const modes = Array(6).fill("fraction");
-  return buildSectionQuestions({
-    polyCount:2,
-    allowBigDen:true,
-    forceModes:modes
-  });
-}
-function buildSection3Questions(){
-  return buildSectionQuestions({
-    polyCount:4,
-    allowBigDen:true,
-    mixModes:{sentence:4,fraction:4}
-  });
-}
+    // fraction style
+    this.numFracEl = cfg.numFracId ? document.getElementById(cfg.numFracId) : null;
+    this.denFracEl = cfg.denFracId ? document.getElementById(cfg.denFracId) : null;
+    this.fracRowEl  = cfg.fracRowId ? document.getElementById(cfg.fracRowId) : null;
 
-/* controller */
-function SectionController(cfg){
-  this.sectionType = cfg.sectionType;
-  this.ctx = document.getElementById(cfg.canvasId).getContext("2d");
+    // heading
+    this.headingEl = cfg.headingId ? document.getElementById(cfg.headingId) : null;
 
-  this.numSentenceEl = cfg.numSentenceId ? document.getElementById(cfg.numSentenceId) : null;
-  this.denSentenceEl = cfg.denSentenceId ? document.getElementById(cfg.denSentenceId) : null;
-  this.sentenceRowEl  = cfg.sentenceRowId ? document.getElementById(cfg.sentenceRowId) : null;
+    this.staticPromptType = cfg.staticPromptType || null;
 
-  this.numFracEl = cfg.numFracId ? document.getElementById(cfg.numFracId) : null;
-  this.denFracEl = cfg.denFracId ? document.getElementById(cfg.denFracId) : null;
-  this.fracRowEl  = cfg.fracRowId ? document.getElementById(cfg.fracRowId) : null;
+    this.questions = cfg.questions;
+    this.totalQuestions = this.questions.length;
 
-  this.headingEl = cfg.headingId ? document.getElementById(cfg.headingId) : null;
+    this.feedbackEl = document.getElementById(cfg.feedbackId);
+    this.checkBtn = document.getElementById(cfg.checkBtnId);
+    this.nextBtn  = document.getElementById(cfg.nextBtnId);
 
-  this.staticPromptType = cfg.staticPromptType || null;
+    this.qCountEl = document.getElementById(cfg.qCountId);
+    this.qTotalEl = document.getElementById(cfg.qTotalId);
+    this.scoreEl  = document.getElementById(cfg.scoreId);
 
-  this.questions = cfg.questions;
-  this.totalQuestions = this.questions.length;
+    this.qTotalEl.textContent = this.totalQuestions.toString();
 
-  this.feedbackEl = document.getElementById(cfg.feedbackId);
-  this.checkBtn = document.getElementById(cfg.checkBtnId);
-  this.nextBtn  = document.getElementById(cfg.nextBtnId);
+    this.index = 0;
+    this.score = 0;
+    this.currentQ = null;
+    this.answeredThisOne = false;
 
-  this.qCountEl = document.getElementById(cfg.qCountId);
-  this.qTotalEl = document.getElementById(cfg.qTotalId);
-  this.scoreEl  = document.getElementById(cfg.scoreId);
+    // Section 3 only:
+    this.slsResults = Array(this.totalQuestions).fill(null); // first-attempt record
 
-  this.qTotalEl.textContent = this.totalQuestions.toString();
+    this.checkBtn.addEventListener("click", ()=>this.checkAnswer());
+    this.nextBtn.addEventListener("click", ()=>this.nextQuestion());
 
-  this.index = 0;
-  this.score = 0;
-  this.currentQ = null;
-  this.answeredThisOne = false;
+    // press Enter to Check
+    [this.numSentenceEl,this.denSentenceEl,this.numFracEl,this.denFracEl].forEach(inp=>{
+      if(!inp) return;
+      inp.addEventListener("keydown", e=>{
+        if(e.key==="Enter") this.checkAnswer();
+      });
+    });
 
-  this.slsResults = Array(this.totalQuestions).fill(null);
-
-  this.checkBtn.addEventListener("click", ()=>this.checkAnswer());
-  this.nextBtn.addEventListener("click", ()=>this.nextQuestion());
-
-  if(this.numSentenceEl){ this.numSentenceEl.addEventListener("keydown", e=>{ if(e.key==="Enter") this.checkAnswer(); }); }
-  if(this.denSentenceEl){ this.denSentenceEl.addEventListener("keydown", e=>{ if(e.key==="Enter") this.checkAnswer(); }); }
-  if(this.numFracEl){ this.numFracEl.addEventListener("keydown", e=>{ if(e.key==="Enter") this.checkAnswer(); }); }
-  if(this.denFracEl){ this.denFracEl.addEventListener("keydown", e=>{ if(e.key==="Enter") this.checkAnswer(); }); }
-
-  this.loadQuestion();
-}
-
-SectionController.prototype.updateHUD = function(){
-  this.qCountEl.textContent = (this.index+1).toString();
-  this.scoreEl.textContent  = this.score.toString();
-};
-
-SectionController.prototype.resetInputs = function(){
-  if(this.numSentenceEl) this.numSentenceEl.value="";
-  if(this.denSentenceEl) this.denSentenceEl.value="";
-  if(this.numFracEl) this.numFracEl.value="";
-  if(this.denFracEl) this.denFracEl.value="";
-};
-
-SectionController.prototype.applyUIForMode = function(){
-  const mode = this.staticPromptType ? this.staticPromptType : this.currentQ.mode;
-
-  if(this.sentenceRowEl) this.sentenceRowEl.style.display="none";
-  if(this.fracRowEl) this.fracRowEl.style.display="none";
-
-  if(mode==="sentence"){
-    if(this.sentenceRowEl) this.sentenceRowEl.style.display="flex";
-    if(this.headingEl){
-      this.headingEl.textContent="What fraction of this shape is shaded?";
-    }
-  }else{
-    if(this.fracRowEl) this.fracRowEl.style.display="flex";
-    if(this.headingEl){
-      this.headingEl.textContent="What fraction is shaded?";
-    }
-  }
-};
-
-SectionController.prototype.loadQuestion = function(){
-  this.currentQ = this.questions[this.index];
-  this.answeredThisOne = false;
-
-  this.resetInputs();
-  this.feedbackEl.textContent = "";
-  this.feedbackEl.className = "feedback";
-  this.nextBtn.classList.remove("correct");
-  this.nextBtn.style.display = "none";
-
-  this.applyUIForMode();
-  drawQuestion(this.ctx, this.currentQ);
-  this.updateHUD();
-};
-
-SectionController.prototype.readUserAnswer = function(){
-  const mode = this.staticPromptType ? this.staticPromptType : this.currentQ.mode;
-  if(mode==="sentence"){
-    return {
-      userNum: parseInt(this.numSentenceEl.value,10),
-      userDen: parseInt(this.denSentenceEl.value,10)
-    };
-  }else{
-    return {
-      userNum: parseInt(this.numFracEl.value,10),
-      userDen: parseInt(this.denFracEl.value,10)
-    };
-  }
-};
-
-SectionController.prototype.checkAnswer = function(){
-  const {userNum,userDen} = this.readUserAnswer();
-
-  if(isNaN(userNum) || isNaN(userDen)){
-    this.feedbackEl.textContent="Please fill both boxes.";
-    this.feedbackEl.className="feedback no";
-    return;
-  }
-  if(userDen===0){
-    this.feedbackEl.textContent="Denominator cannot be 0.";
-    this.feedbackEl.className="feedback no";
-    return;
-  }
-
-  const correctNum = this.currentQ.num;
-  const correctDen = this.currentQ.den;
-
-  const uR = reduceFrac(userNum,userDen);
-  const cR = reduceFrac(correctNum,correctDen);
-  const gotIt = (uR.n===cR.n && uR.d===cR.d);
-
-  if(gotIt && !this.answeredThisOne){
-    this.score += 1;
-    this.answeredThisOne = true;
-    this.updateHUD();
-  }
-
-  if(this.sectionType==="sec3"){
-    const qObj = this.currentQ;
-    if(!qObj.firstAttemptLocked){
-      qObj.firstAttemptLocked = true;
-      qObj.firstAttemptCorrect = gotIt ? 1 : 0;
-      this.slsResults[this.index] = qObj.firstAttemptCorrect;
-    }
-  }
-
-  if(gotIt){
-    this.feedbackEl.textContent="Correct! 🎉 Tap Next.";
-    this.feedbackEl.className="feedback ok";
-    this.nextBtn.classList.add("correct");
-    this.nextBtn.style.display="inline-block";
-  }else{
-    this.feedbackEl.textContent="Not yet. Try again!";
-    this.feedbackEl.className="feedback no";
-  }
-};
-
-SectionController.prototype.endOfSection3AndReport = function(){
-  const results = this.slsResults.slice();
-  const totalFirstScore = results.reduce((sum,v)=> (v===1?sum+1:sum),0);
-
-  const parts = results.map((v,i)=>`Q${i+1}:${v===1?1:0}`);
-  const feedbackText = `Fractions first-try score ${totalFirstScore}/${results.length} | ${parts.join(", ")}`;
-
-  writePayload(totalFirstScore, feedbackText);
-  pushToXAPI(totalFirstScore, feedbackText);
-
-  console.log("SLS first-attempt detail:", results);
-  console.log("SLS first-attempt total:", totalFirstScore, "out of", this.slsResults.length);
-};
-
-SectionController.prototype.nextQuestion = function(){
-  if(this.index < this.totalQuestions-1){
-    this.index++;
     this.loadQuestion();
-  }else{
-    this.feedbackEl.textContent="Section complete! ✅ You may switch tab.";
-    this.feedbackEl.className="feedback ok";
-    this.nextBtn.style.display="none";
+    this.updateMiniSLS();
+  }
 
+  SectionController.prototype.updateHUD = function(){
+    this.qCountEl.textContent = (this.index+1).toString();
+    this.scoreEl.textContent  = this.score.toString();
+  };
+
+  SectionController.prototype.updateMiniSLS = function(){
+    if(this.sectionType!=="sec3") return;
+    const miniScoreEl = document.getElementById('miniScore');
+    const miniOutOfEl = document.getElementById('miniOutOf');
+    if(!miniScoreEl || !miniOutOfEl) return;
+    const correctFirst = this.slsResults.reduce((sum,v)=> (v===1?sum+1:sum),0);
+    const attempted = this.slsResults.filter(v=>v!==null).length;
+    miniScoreEl.textContent = String(correctFirst);
+    miniOutOfEl.textContent = String(attempted);
+  };
+
+  SectionController.prototype.resetInputs = function(){
+    if(this.numSentenceEl) this.numSentenceEl.value="";
+    if(this.denSentenceEl) this.denSentenceEl.value="";
+    if(this.numFracEl) this.numFracEl.value="";
+    if(this.denFracEl) this.denFracEl.value="";
+  };
+
+  SectionController.prototype.applyUIForMode = function(){
+    const mode = this.staticPromptType ? this.staticPromptType : this.currentQ.mode;
+
+    if(this.sentenceRowEl) this.sentenceRowEl.style.display="none";
+    if(this.fracRowEl) this.fracRowEl.style.display="none";
+
+    if(mode==="sentence"){
+      if(this.sentenceRowEl) this.sentenceRowEl.style.display="flex";
+      if(this.headingEl){
+        this.headingEl.textContent="What fraction of this shape is shaded?";
+      }
+    }else{
+      if(this.fracRowEl) this.fracRowEl.style.display="flex";
+      if(this.headingEl){
+        this.headingEl.textContent="What fraction is shaded?";
+      }
+    }
+  };
+
+  SectionController.prototype.loadQuestion = function(){
+    this.currentQ = this.questions[this.index];
+    this.answeredThisOne = false;
+
+    this.resetInputs();
+    this.feedbackEl.textContent = "";
+    this.feedbackEl.className = "feedback";
+    this.nextBtn.classList.remove("correct");
+    this.nextBtn.style.display = "none";
+
+    this.applyUIForMode();
+    drawQuestion(this.ctx, this.currentQ);
+    this.updateHUD();
+    this.updateMiniSLS();
+  };
+
+  SectionController.prototype.readUserAnswer = function(){
+    const mode = this.staticPromptType ? this.staticPromptType : this.currentQ.mode;
+    if(mode==="sentence"){
+      return {
+        userNum: parseInt(this.numSentenceEl.value,10),
+        userDen: parseInt(this.denSentenceEl.value,10)
+      };
+    }else{
+      return {
+        userNum: parseInt(this.numFracEl.value,10),
+        userDen: parseInt(this.denFracEl.value,10)
+      };
+    }
+  };
+
+  SectionController.prototype.checkAnswer = function(){
+    const {userNum,userDen} = this.readUserAnswer();
+    if(isNaN(userNum) || isNaN(userDen)){
+      this.feedbackEl.textContent="Please fill both boxes.";
+      this.feedbackEl.className="feedback no";
+      return;
+    }
+    if(userDen===0){
+      this.feedbackEl.textContent="Denominator cannot be 0.";
+      this.feedbackEl.className="feedback no";
+      return;
+    }
+
+    const correctNum = this.currentQ.num;
+    const correctDen = this.currentQ.den;
+
+    const uR = reduceFrac(userNum,userDen);
+    const cR = reduceFrac(correctNum,correctDen);
+    const gotIt = (uR.n===cR.n && uR.d===cR.d);
+
+    if(gotIt && !this.answeredThisOne){
+      this.score += 1;
+      this.answeredThisOne = true;
+      this.updateHUD();
+    }
+
+    // record first-attempt ONLY ONCE in Section 3
     if(this.sectionType==="sec3"){
-      this.endOfSection3AndReport();
+      const qObj = this.currentQ;
+      if(!qObj.firstAttemptLocked){
+        qObj.firstAttemptLocked = true;
+        qObj.firstAttemptCorrect = gotIt ? 1 : 0;
+        this.slsResults[this.index] = qObj.firstAttemptCorrect;
+        this.updateMiniSLS();
+      }
+    }
+
+    if(gotIt){
+      this.feedbackEl.textContent="Correct! 🎉 Tap Next.";
+      this.feedbackEl.className="feedback ok";
+      this.nextBtn.classList.add("correct");
+      this.nextBtn.style.display="inline-block";
+    }else{
+      this.feedbackEl.textContent="Not yet. Try again!";
+      this.feedbackEl.className="feedback no";
+    }
+  };
+
+  SectionController.prototype.buildFeedbackTextForSLS = function(){
+    // like Sound Garden buildFeedback(), but for fractions:
+    // score = number of first-attempt correct / total
+    const results = this.slsResults.slice();
+    const firstCorrect = results.reduce((s,v)=> v===1?s+1:s,0);
+    const total = results.length;
+    const perQ = results.map((v,i)=>`Q${i+1}:${v===1?1:0}`).join(", ");
+    return `Fractions first-try score ${firstCorrect}/${total} | ${perQ}`;
+  };
+
+  SectionController.prototype.finishSection3AndSend = function(){
+    const results = this.slsResults.slice();
+    const firstCorrect = results.reduce((s,v)=> v===1?s+1:s,0);
+    const feedbackText = this.buildFeedbackTextForSLS();
+
+    // write to local payload (evidence) + call pushToXAPI()
+    writePayload(firstCorrect, feedbackText);
+    pushToXAPI(firstCorrect, feedbackText);
+  };
+
+  SectionController.prototype.nextQuestion = function(){
+    if(this.index < this.totalQuestions-1){
+      this.index++;
+      this.loadQuestion();
+    }else{
+      // finished this section
+      this.feedbackEl.textContent="Section complete! ✅ You may go on.";
+      this.feedbackEl.className="feedback ok";
+      this.nextBtn.style.display="none";
+
+      if(this.sectionType==="sec1"){
+        unlockTab(2);
+      }else if(this.sectionType==="sec2"){
+        unlockTab(3);
+      }else if(this.sectionType==="sec3"){
+        // send score/feedback to SLS
+        this.finishSection3AndSend();
+      }
+    }
+    this.updateHUD();
+  };
+
+  /* ---------------------
+     Make the 3 sections
+     --------------------- */
+  const qSet1 = buildSection1Questions();
+  const qSet2 = buildSection2Questions();
+  const qSet3 = buildSection3Questions();
+
+  const sec1 = new SectionController({
+    sectionType:"sec1",
+    canvasId:"canvas1",
+
+    numSentenceId:"num1_sentence",
+    denSentenceId:"den1_sentence",
+    sentenceRowId:"sentenceRow1",
+
+    numFracId:null,
+    denFracId:null,
+    fracRowId:null,
+
+    headingId:null,
+    staticPromptType:"sentence",
+
+    feedbackId:"feedback1",
+    checkBtnId:"checkBtn1",
+    nextBtnId:"nextBtn1",
+    qCountId:"qCount1",
+    qTotalId:"qTotal1",
+    scoreId:"score1",
+    questions:qSet1
+  });
+
+  const sec2 = new SectionController({
+    sectionType:"sec2",
+    canvasId:"canvas2",
+
+    numSentenceId:null,
+    denSentenceId:null,
+    sentenceRowId:null,
+
+    numFracId:"num2_frac",
+    denFracId:"den2_frac",
+    fracRowId:"fracRow2",
+
+    headingId:null,
+    staticPromptType:"fraction",
+
+    feedbackId:"feedback2",
+    checkBtnId:"checkBtn2",
+    nextBtnId:"nextBtn2",
+    qCountId:"qCount2",
+    qTotalId:"qTotal2",
+    scoreId:"score2",
+    questions:qSet2
+  });
+
+  const sec3 = new SectionController({
+    sectionType:"sec3",
+    canvasId:"canvas3",
+
+    numSentenceId:"num3_sentence",
+    denSentenceId:"den3_sentence",
+    sentenceRowId:"sentenceRow3",
+
+    numFracId:"num3_frac",
+    denFracId:"den3_frac",
+    fracRowId:"fracRow3",
+
+    headingId:"promptText3",
+    staticPromptType:null, // mix per question
+
+    feedbackId:"feedback3",
+    checkBtnId:"checkBtn3",
+    nextBtnId:"nextBtn3",
+    qCountId:"qCount3",
+    qTotalId:"qTotal3",
+    scoreId:"score3",
+    questions:qSet3
+  });
+
+  /* ---------------------
+     Tab logic with locking
+     --------------------- */
+  const tabBtns=document.querySelectorAll(".tabBtn");
+  const sectionsEls=document.querySelectorAll(".sec");
+
+  function unlockTab(n){
+    if(n===2){
+      document.getElementById('tab2').classList.remove('locked');
+    }else if(n===3){
+      document.getElementById('tab3').classList.remove('locked');
     }
   }
-  this.updateHUD();
-};
 
-/* init all 3 sections */
-const qSet1 = buildSection1Questions();
-const qSet2 = buildSection2Questions();
-const qSet3 = buildSection3Questions();
-
-const sec1 = new SectionController({
-  sectionType:"sec1",
-  canvasId:"canvas1",
-
-  numSentenceId:"num1_sentence",
-  denSentenceId:"den1_sentence",
-  sentenceRowId:"sentenceRow1",
-
-  numFracId:null,
-  denFracId:null,
-  fracRowId:null,
-
-  headingId:null,
-  staticPromptType:"sentence",
-
-  feedbackId:"feedback1",
-  checkBtnId:"checkBtn1",
-  nextBtnId:"nextBtn1",
-  qCountId:"qCount1",
-  qTotalId:"qTotal1",
-  scoreId:"score1",
-  questions:qSet1
-});
-
-const sec2 = new SectionController({
-  sectionType:"sec2",
-  canvasId:"canvas2",
-
-  numSentenceId:null,
-  denSentenceId:null,
-  sentenceRowId:null,
-
-  numFracId:"num2_frac",
-  denFracId:"den2_frac",
-  fracRowId:"fracRow2",
-
-  headingId:null,
-  staticPromptType:"fraction",
-
-  feedbackId:"feedback2",
-  checkBtnId:"checkBtn2",
-  nextBtnId:"nextBtn2",
-  qCountId:"qCount2",
-  qTotalId:"qTotal2",
-  scoreId:"score2",
-  questions:qSet2
-});
-
-const sec3 = new SectionController({
-  sectionType:"sec3",
-  canvasId:"canvas3",
-
-  numSentenceId:"num3_sentence",
-  denSentenceId:"den3_sentence",
-  sentenceRowId:"sentenceRow3",
-
-  numFracId:"num3_frac",
-  denFracId:"den3_frac",
-  fracRowId:"fracRow3",
-
-  headingId:"promptText3",
-  staticPromptType:null,
-
-  feedbackId:"feedback3",
-  checkBtnId:"checkBtn3",
-  nextBtnId:"nextBtn3",
-  qCountId:"qCount3",
-  qTotalId:"qTotal3",
-  scoreId:"score3",
-  questions:qSet3
-});
-
-/* tab switching */
-const tabBtns=document.querySelectorAll(".tabBtn");
-const sectionsEls=document.querySelectorAll(".sec");
-
-tabBtns.forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    const target=btn.getAttribute("data-tab");
-    tabBtns.forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    sectionsEls.forEach(s=>{
-      if(s.id===target){
-        s.classList.add("active");
-      }else{
-        s.classList.remove("active");
-      }
+  tabBtns.forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      if(btn.classList.contains("locked")) return;
+      const target=btn.getAttribute("data-tab");
+      tabBtns.forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      sectionsEls.forEach(s=>{
+        if(s.id===target){ s.classList.add("active"); }
+        else { s.classList.remove("active"); }
+      });
     });
-    // scroll to top of card for small screens after switching section
-    window.scrollTo({top:0,behavior:"smooth"});
   });
-});
+
+  /* ---------------------
+     Hook up the hidden "Send/Save" + "Clear" buttons
+     so if teacher ever clicks them in debug panel,
+     we still behave like reference.
+     --------------------- */
+
+  // replicate reference behaviour: when teacher clicks #save-store,
+  // just call pushToXAPI() with current input box values.
+  const saveStoreBtn = document.getElementById('save-store');
+  if(saveStoreBtn){
+    saveStoreBtn.addEventListener('click', ()=>{
+      const sVal = document.getElementById('score-input').value || 0;
+      const fVal = document.getElementById('feedback-input').value || "";
+      writePayload(sVal, fVal);
+      pushToXAPI(sVal, fVal);
+    });
+  }
+
+  const clearBtn = document.getElementById('clear-inputs');
+  if(clearBtn){
+    clearBtn.addEventListener('click', ()=>{
+      document.getElementById('score-input').value = '';
+      document.getElementById('feedback-input').value = '';
+      writePayload(0, '');
+      pushToXAPI(0, '');
+    });
+  }
+
+  /* ---------------------
+     Initialise NewSessionClearKit
+     --------------------- */
+  window.addEventListener('load', () => {
+    NewSessionClearKit.init({
+      activityId: window.ACTIVITY_ID,
+      clickButtonId: 'newSessionBtn', // this is hidden but exists
+      pushZero: false
+    });
+  });
 
 })(); // end IIFE
 </script>
+
 </body>
 </html>
